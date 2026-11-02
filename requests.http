@@ -1,0 +1,61 @@
+### Variables (el token lo emite AuthCore con POST /auth/login; pégalo aquí, NO lo subas al repositorio)
+@host = http://localhost:8082
+@token = PEGA_AQUI_EL_TOKEN_DE_UN_ADMIN
+
+### HU-8: registrar cliente
+POST {{host}}/api/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "nombre": "Ana Pérez", "telefono": "300 123 4567", "correo": "ana@correo.com" }
+
+### HU-8: registrar profesional con su disponibilidad semanal
+POST {{host}}/api/profesionales
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "nombre": "Dra. López",
+  "disponibilidad": [
+    { "dia": "MONDAY",    "desde": "08:00", "hasta": "12:00" },
+    { "dia": "WEDNESDAY", "desde": "14:00", "hasta": "18:00" } ] }
+
+### HU-8: listar
+GET {{host}}/api/clientes
+Authorization: Bearer {{token}}
+
+###
+GET {{host}}/api/profesionales
+Authorization: Bearer {{token}}
+
+### HU-9: crear turno (duracionMinutos opcional, por defecto 30). Usa una fecha futura que sea lunes.
+POST {{host}}/api/turnos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "clienteId": 1, "profesionalId": 1, "fecha": "2026-11-02", "hora": "09:00", "duracionMinutos": 30 }
+
+### HU-10: repite con hora 09:15 -> 409 "se cruza con el turno ..."
+POST {{host}}/api/turnos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "clienteId": 1, "profesionalId": 1, "fecha": "2026-11-02", "hora": "09:15", "duracionMinutos": 30 }
+
+### HU-11: reprogramar (solo cambia lo que envíes)
+PUT {{host}}/api/turnos/1/horario
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "hora": "10:00" }
+
+### HU-11: cancelar
+POST {{host}}/api/turnos/1/cancelacion
+Authorization: Bearer {{token}}
+
+### HU-12: consultar con filtros (todos opcionales)
+GET {{host}}/api/turnos?profesionalId=1&desde=2026-11-01&hasta=2026-11-30&incluirCancelados=false
+Authorization: Bearer {{token}}
+
+### HU-12: un turno
+GET {{host}}/api/turnos/1
+Authorization: Bearer {{token}}

@@ -1,0 +1,8 @@
+# Perfil "cli": segundo adaptador de entrada (RNF-01). Sin servidor web, sin JWT: se opera desde la consola.
+spring:
+  main:
+    web-application-type: none
+    banner-mode: "off"
+logging:
+  level:
+    root: warn

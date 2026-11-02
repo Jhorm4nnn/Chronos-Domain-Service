@@ -1,0 +1,25 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: domain-service-turnos
+  datasource:
+    url: jdbc:h2:mem:turnos;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    open-in-view: false          # los adaptadores abren su propia transacción; nada de lazy loading en la capa REST
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.jdbc.time_zone: America/Bogota
+
+seguridad:
+  jwt:
+    # Clave COMPARTIDA con AuthCore, en Base64. NO se escribe aquí: se entrega por variable de entorno.
+    # Sin esta variable la aplicación no arranca (falla rápido, a propósito). Con el perfil "cli" no se necesita.
+    secret-base64: ${JWT_SECRET_BASE64}
+
+negocio:
+  zona-horaria: America/Bogota
