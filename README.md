@@ -65,7 +65,7 @@ Pruebas manuales: `requests.http` (el token lo emite AuthCore; no lo guardes en 
 1. Ejecutar `mvn verify` y corregir lo que aparezca en las pruebas Spring.
 2. Ejecutar la prueba de punta a punta `TurnosRestTest` y adjuntar la evidencia.
 3. Probar el CLI con `SPRING_PROFILES_ACTIVE=cli`.
-4. Decidir con el profesor los puntos abiertos de las observaciones del Excel (API externa, numeración de HU).
+4. Decidir con el profesor los puntos abiertos de las observaciones del Excel (numeración de HU).
 
 No incluye credenciales ni secretos: todo llega por variables de entorno.
 
