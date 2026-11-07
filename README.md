@@ -3,6 +3,9 @@
 Servicio de dominio que se apoya en **AuthCore** (JWT HS384) para autenticar. Gestiona clientes, profesionales
 con disponibilidad semanal y turnos que **nunca se solapan** para un mismo profesional.
 
+**El problema:** muchos negocios pequeños agendan citas por teléfono o en un cuaderno, lo que genera choques de
+horario y pérdida de clientes. Chronos es el sistema de turnos que lo evita.
+
 Paquete base: `com.sistematurnos.agenda` · Java 17 · Spring Boot 3.5.6 · Maven · H2 (dev) / MySQL (prod) · JUnit 5.
 El grupo no declaró tecnologías: se usó el estándar del curso (decisión documentada en el Excel, hoja de notas).
 
@@ -75,7 +78,8 @@ No incluye credenciales ni secretos: todo llega por variables de entorno.
 |---|---|
 | [Chronos-AuthCore](https://github.com/Jhorm4nnn/Chronos-AuthCore) | Emite el JWT (HU-1 a HU-7), puerto 8081 |
 | **Chronos-Domain-Service** (este) | Agenda de turnos (HU-8 a HU-12), puerto 8082 |
-| [Crhonos-Sistema_de_Turnos](https://github.com/Jhorm4nnn/Crhonos-Sistema_de_Turnos) | Repositorio original del proyecto y documentación |
+| [Crhonos-Sistema_de_Turnos](https://github.com/Jhorm4nnn/Crhonos-Sistema_de_Turnos) | Repositorio original, reemplazado por estos dos |
 
 Ambos servicios deben arrancar con **la misma** variable `JWT_SECRET_BASE64` (mínimo 48 bytes en Base64 para HS384).
-La guía del profesor y el product backlog están en [`docs/`](docs/).
+La guía del profesor y el product backlog están en [`docs/`](docs/); los documentos anteriores del proyecto, en
+[`docs/antecedentes/`](docs/antecedentes/LEEME.md).
