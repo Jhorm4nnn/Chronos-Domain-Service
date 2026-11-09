@@ -3,5 +3,5 @@ target/
 .idea/
 *.iml
 .vscode/
-out/
+/out/
 *.log
