@@ -83,3 +83,4 @@ No incluye credenciales ni secretos: todo llega por variables de entorno.
 Ambos servicios deben arrancar con **la misma** variable `JWT_SECRET_BASE64` (mínimo 48 bytes en Base64 para HS384).
 La guía del profesor y el product backlog están en [`docs/`](docs/); los documentos anteriores del proyecto, en
 [`docs/antecedentes/`](docs/antecedentes/LEEME.md).
+Los entregables de metodologías (semanas 9 y 10) están en [`docs/metodologias/`](docs/metodologias/).
