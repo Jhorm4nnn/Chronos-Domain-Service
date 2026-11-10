@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: domain-service-turnos
+  # Para ejecutar en local (por ejemplo desde NetBeans): si existe un archivo .env en la carpeta del proyecto,
+  # sus valores (CLAVE=valor) se usan como configuración. Ese archivo está en .gitignore y nunca se sube.
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:h2:mem:turnos;MODE=MySQL;DB_CLOSE_DELAY=-1
     username: sa
