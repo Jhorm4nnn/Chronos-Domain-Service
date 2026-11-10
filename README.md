@@ -54,6 +54,22 @@ La transacción se pide por el puerto `TransaccionPort`; el reloj se inyecta (`C
 | HU-12 | Consultar con filtros | `GET /api/turnos?profesionalId&clienteId&desde&hasta&incluirCancelados` |
 | RNF-01 | Uso por consola | `TurnosCli` (perfil `cli`), mismos casos de uso que REST |
 
+## Interfaz web
+
+El servicio trae una interfaz para operar la agenda desde el navegador: es otro adaptador de entrada sobre la misma
+API (RNF-01), igual que la consola. Se abre en `http://<host>:8082/` (en local, http://localhost:8082/).
+
+| Pantalla | Qué permite |
+|---|---|
+| Inicio de sesión | Entrar con un usuario de AuthCore; el token se guarda solo durante la sesión del navegador |
+| Agenda | Turnos en lista o en vista semanal, con filtros por profesional, cliente, fechas y cancelados; reprogramar y cancelar |
+| Nuevo turno | Agendar mostrando la disponibilidad del profesional; los cruces (409) y los horarios fuera de disponibilidad se explican en pantalla |
+| Clientes y Profesionales | Registrar y listar; los profesionales con sus franjas semanales |
+
+Son archivos estáticos (`src/main/resources/static`, HTML, CSS y JavaScript sin dependencias): solo ellos son públicos,
+la API sigue exigiendo un token ADMIN. El login llama a AuthCore en el mismo host y el puerto 8081 (se puede cambiar en
+«Servidor de autenticación»); por eso AuthCore permite CORS para su `/api/**`.
+
 ## Ejecutar
 
 No hace falta instalar Maven: `./mvnw` (o `mvnw.cmd` en Windows) lo descarga. Requiere JDK 17 o superior.
