@@ -196,7 +196,7 @@ class TurnosRestTest {
     void consultas() throws Exception {
         long c1 = crearCliente(), c2 = crearCliente(), p1 = crearProfesional(), p2 = crearProfesional();
         LocalDate lunes = proximo(DayOfWeek.MONDAY);
-        LocalDate miercoles = proximo(DayOfWeek.WEDNESDAY);
+        LocalDate miercoles = lunes.plusDays(2);   // el miércoles de esa misma semana: siempre después del lunes
         agendar(c1, p1, miercoles, "14:00", 30);
         agendar(c2, p1, lunes, "10:00", 30);
         agendar(c1, p2, lunes, "08:00", 30);

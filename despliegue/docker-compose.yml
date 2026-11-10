@@ -1,0 +1,69 @@
+# Chronos completo en un solo servidor: MySQL + AuthCore + Domain Service.
+#
+# Estructura esperada en el servidor (los dos repositorios uno al lado del otro):
+#   chronos/
+#   ├── Chronos-AuthCore/
+#   └── Chronos-Domain-Service/despliegue/   <- aquí: docker-compose.yml y .env
+#
+# Los secretos van SOLO en despliegue/.env (lo crea ./generar-env.sh y nunca se sube al repositorio).
+# Uso: docker compose up -d --build
+name: chronos
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
+      AUTHCORE_DB_PASSWORD: ${AUTHCORE_DB_PASSWORD:?Define AUTHCORE_DB_PASSWORD en .env}
+      TURNOS_DB_PASSWORD: ${TURNOS_DB_PASSWORD:?Define TURNOS_DB_PASSWORD en .env}
+    # Memoria contenida para que quepa con las dos aplicaciones en una instancia pequeña.
+    command: ["--innodb-buffer-pool-size=128M", "--performance-schema=OFF"]
+    volumes:
+      - mysql-datos:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    # Sin "ports": MySQL solo es visible dentro de la red de Docker, nunca desde internet.
+
+  authcore:
+    build: ../../Chronos-AuthCore
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/authcore_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: authcore
+      SPRING_DATASOURCE_PASSWORD: ${AUTHCORE_DB_PASSWORD}
+      SPRING_JPA_SHOW_SQL: "false"
+      JWT_SECRET_BASE64: ${JWT_SECRET_BASE64:?Define JWT_SECRET_BASE64 en .env}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?Define ADMIN_USERNAME en .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Define ADMIN_PASSWORD en .env}
+      JAVA_OPTS: -Xmx256m
+    ports:
+      - "8081:8081"
+
+  domain:
+    build: ..
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/turnos?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
+      DB_USER: turnos
+      DB_PASSWORD: ${TURNOS_DB_PASSWORD}
+      # El MISMO secreto que AuthCore: así el Domain Service verifica la firma de sus tokens.
+      JWT_SECRET_BASE64: ${JWT_SECRET_BASE64}
+      JAVA_OPTS: -Xmx256m
+    ports:
+      - "8082:8082"
+
+volumes:
+  mysql-datos:

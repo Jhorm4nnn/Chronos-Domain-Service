@@ -8,9 +8,14 @@ import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 
 @DataJpaTest
 @Import(TurnoRepositoryAdapter.class)
@@ -20,6 +25,22 @@ class TurnoRepositoryAdapterContractTest extends TurnoRepositoryContractTest {
     private TurnoRepositoryAdapter adaptador;
     @Autowired
     private EntityManager em;
+
+    @Autowired
+    private PlatformTransactionManager transacciones;
+    private TransactionStatus transaccion;
+
+    // @DataJpaTest solo envuelve en transacción los @Test declarados en esta clase, no los heredados del contrato.
+    // Se abre aquí y se revierte al terminar, para que cada prueba empiece con la base de datos vacía.
+    @BeforeEach
+    void abrirTransaccion() {
+        transaccion = transacciones.getTransaction(TransactionDefinition.withDefaults());
+    }
+
+    @AfterEach
+    void revertirTransaccion() {
+        transacciones.rollback(transaccion);
+    }
 
     private long seq = 100;
 

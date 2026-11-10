@@ -13,9 +13,23 @@ El grupo no declaró tecnologías: se usó el estándar del curso (decisión doc
 
 | Parte | Estado |
 |---|---|
-| Dominio + aplicación + CLI | Compilado y probado: **66 pruebas puras** pasan |
-| Infraestructura (Spring, JPA, REST, seguridad) | Escrita y revisada, **sin ejecutar** (sin acceso a Maven en el entorno de generación) |
-| Pruebas Spring (contrato JPA, unicidad, REST de punta a punta) | Escritas, **sin ejecutar**: son la primera tarea del grupo con `mvn verify` |
+| Dominio + aplicación + CLI | Compilado y probado |
+| Infraestructura (Spring, JPA, REST, seguridad) | Compilada y probada |
+| `./mvnw verify` desde un clon limpio | **102 pruebas, 0 fallos** (9 de noviembre de 2026) |
+| Despliegue en AWS (EC2 + Docker Compose) | Funcionando; prueba de punta a punta **20/20** ([evidencia](docs/evidencia/despliegue-aws-2026-11-09.md)) |
+
+### Qué falló en el primer `mvn verify` y cómo se corrigió
+
+La primera ejecución completa dio 102 pruebas con 2 fallos y 11 errores, por tres causas:
+
+| Falla | Causa | Corrección |
+|---|---|---|
+| 11 errores en `*RepositoryAdapterContractTest` (`TransactionRequired`, violación de clave única) | `@DataJpaTest` solo envuelve en transacción los `@Test` declarados en la clase, no los heredados del contrato. Sin transacción, `em.flush()` fallaba y los datos de una prueba quedaban para la siguiente | Cada subclase JPA abre una transacción en `@BeforeEach` y la revierte en `@AfterEach`; los contratos siguen libres de Spring |
+| `TurnosRestTest.consultas` | La prueba calculaba el próximo lunes y el próximo miércoles por separado; corriendo un lunes, el miércoles caía antes y el orden esperado se invertía | El miércoles es `lunes.plusDays(2)` |
+| `ArquitecturaHexagonalTest.los_puertos_de_salida_son_interfaces` | `FiltroTurno` es un record (el dato que viaja por el puerto), no una interfaz | La regla excluye los records |
+
+Además faltaban en GitHub `application/port/out` e `infrastructure/adapters/out`: la regla `out/` del `.gitignore`
+excluía cualquier carpeta con ese nombre. Se cambió por `/out/` y se subieron los 23 archivos.
 
 ## Arquitectura (hexagonal)
 
@@ -42,17 +56,87 @@ La transacción se pide por el puerto `TransaccionPort`; el reloj se inyecta (`C
 
 ## Ejecutar
 
+No hace falta instalar Maven: `./mvnw` (o `mvnw.cmd` en Windows) lo descarga. Requiere JDK 17 o superior.
+
 ```bash
 export JWT_SECRET_BASE64=<el mismo secreto Base64 que usa AuthCore>   # nunca en el repositorio
-mvn verify                  # pruebas
-mvn spring-boot:run         # REST en http://localhost:8082 (H2 en memoria)
+./mvnw verify                  # compila y corre todas las pruebas
+./mvnw spring-boot:run         # REST en http://localhost:8082 (H2 en memoria)
 
 # Consola (sin servidor web)
-SPRING_PROFILES_ACTIVE=cli mvn spring-boot:run
+SPRING_PROFILES_ACTIVE=cli ./mvnw spring-boot:run
 ```
 
 Producción: perfil `prod` con `DB_URL`, `DB_USER`, `DB_PASSWORD` como variables de entorno.
 Pruebas manuales: `requests.http` (el token lo emite AuthCore; no lo guardes en el repositorio).
+
+## Ejecutar en local (NetBeans u otro IDE)
+
+1. Clone los dos repositorios, uno al lado del otro, y ábralos en NetBeans con *File > Open Project*
+   (NetBeans reconoce el `pom.xml` de este y el `build.gradle` de AuthCore).
+2. En la carpeta de cada proyecto cree un archivo `.env` (está en `.gitignore`; nunca se sube). La aplicación lo lee
+   al arrancar, así que no hace falta configurar variables de entorno en el IDE. Los dos deben tener el **mismo**
+   secreto (`openssl rand -base64 48`):
+   ```properties
+   JWT_SECRET_BASE64=<secreto Base64 de 48 bytes, el mismo de AuthCore>
+   ```
+3. *Run Project* en AuthCore (puerto 8081) y en este proyecto (puerto 8082). Sin perfil, este servicio usa H2 en
+   memoria. La primera vez NetBeans puede preguntar la clase principal: `com.sistematurnos.agenda.DomainServiceApplication`.
+4. Pruebe con [`requests.http`](requests.http) o con
+   `ADMIN_USERNAME=... ADMIN_PASSWORD=... ./despliegue/prueba-punta-a-punta.sh localhost evidencia.md`.
+
+## Desplegar en AWS (EC2 + Docker Compose)
+
+[`despliegue/docker-compose.yml`](despliegue/docker-compose.yml) levanta todo Chronos en una sola instancia:
+MySQL (bases `authcore_db` y `turnos`, un usuario por servicio), AuthCore en el puerto 8081 y este servicio en el 8082,
+los dos con el **mismo** `JWT_SECRET_BASE64`. MySQL no publica ningún puerto: solo lo ven las dos aplicaciones.
+
+1. **Instancia EC2:** Ubuntu 24.04, mínimo 2 GB de RAM (por ejemplo `t3.small`) y 20 GB de disco.
+   Como *user data*, pegue [`despliegue/preparar-servidor.sh`](despliegue/preparar-servidor.sh): instala Docker,
+   Docker Compose y 2 GB de swap.
+2. **Security group:**
+
+   | Puerto | Origen | Para qué |
+   |---|---|---|
+   | 22 | Solo su IP (`x.x.x.x/32`) | SSH |
+   | 8081 | `0.0.0.0/0` | AuthCore |
+   | 8082 | `0.0.0.0/0` | Domain Service |
+   | 3306 | **Ninguno** | MySQL nunca queda abierto a internet |
+
+3. **Código:** los dos repositorios, uno al lado del otro, en la misma carpeta:
+   ```bash
+   mkdir chronos && cd chronos
+   git clone https://github.com/Jhorm4nnn/Chronos-AuthCore.git
+   git clone https://github.com/Jhorm4nnn/Chronos-Domain-Service.git
+   ```
+   Los repositorios son privados: en el servidor use un token de acceso de GitHub de solo lectura (que no se guarde
+   en el historial del shell) o copie el código desde su equipo con `git archive` y `scp`.
+4. **Secretos:** `./generar-env.sh` crea `despliegue/.env` con valores aleatorios y permisos 600. Ese archivo vive
+   solo en el servidor; [`despliegue/.env.ejemplo`](despliegue/.env.ejemplo) muestra las variables sin valores.
+
+   | Variable | Para qué |
+   |---|---|
+   | `JWT_SECRET_BASE64` | Secreto compartido por los dos servicios (`openssl rand -base64 48`) |
+   | `MYSQL_ROOT_PASSWORD` | Root de MySQL |
+   | `AUTHCORE_DB_PASSWORD`, `TURNOS_DB_PASSWORD` | Usuarios `authcore` y `turnos` de MySQL |
+   | `ADMIN_USERNAME`, `ADMIN_PASSWORD` | Administrador inicial de AuthCore (8+ caracteres, letras y números) |
+
+5. **Levantar:**
+   ```bash
+   cd Chronos-Domain-Service/despliegue
+   ./generar-env.sh
+   docker compose up -d --build
+   docker compose ps            # mysql healthy; authcore y domain running
+   ```
+6. **Probar:** `POST http://<ip-publica>:8081/api/auth/login` con el administrador de `.env` devuelve el token;
+   con él, `requests.http` funciona cambiando `@host` y `@authcore` por la IP pública.
+   [`despliegue/prueba-punta-a-punta.sh`](despliegue/prueba-punta-a-punta.sh) recorre todo el flujo desde su equipo
+   (login, cliente, profesional, turno, cruce 409, reprogramar, cancelar, filtros, 403 y 401) y escribe la evidencia
+   sin tokens ni contraseñas: `./prueba-punta-a-punta.sh <ip-publica> evidencia.md`.
+
+La base de datos se crea la primera vez con [`despliegue/mysql-init/01-crear-bases.sh`](despliegue/mysql-init/01-crear-bases.sh).
+Si cambia las contraseñas de MySQL después, borre el volumen (`docker compose down -v`, que **borra los datos**) o
+cámbielas también dentro de MySQL.
 
 ## Reglas de negocio clave
 
@@ -65,10 +149,9 @@ Pruebas manuales: `requests.http` (el token lo emite AuthCore; no lo guardes en 
 
 ## Pendiente para el grupo
 
-1. Ejecutar `mvn verify` y corregir lo que aparezca en las pruebas Spring.
-2. Ejecutar la prueba de punta a punta `TurnosRestTest` y adjuntar la evidencia.
-3. Probar el CLI con `SPRING_PROFILES_ACTIVE=cli`.
-4. Decidir con el profesor los puntos abiertos de las observaciones del Excel (numeración de HU).
+1. Probar el CLI con `SPRING_PROFILES_ACTIVE=cli`.
+2. Decidir con el profesor los puntos abiertos de las observaciones del Excel (numeración de HU).
+3. Reemplazar `ddl-auto: update` por migraciones versionadas (Flyway o Liquibase).
 
 No incluye credenciales ni secretos: todo llega por variables de entorno.
 
