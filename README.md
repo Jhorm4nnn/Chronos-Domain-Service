@@ -171,6 +171,13 @@ cámbielas también dentro de MySQL.
 
 No incluye credenciales ni secretos: todo llega por variables de entorno.
 
+## Gestión del proyecto
+
+- **Tablero de Trello (Scrum):** [Chronos · Sistema de Turnos (Grupo 5)](https://trello.com/b/JqZOzIz4/chronos-sistema-de-turnos-grupo-5),
+  público. Su organización y una copia de su contenido están en [`docs/gestion/tablero-trello.md`](docs/gestion/tablero-trello.md).
+- **Product backlog:** [`docs/PRODUCT BACKLOG SISTEMA DE TURNOS.xlsx`](docs/PRODUCT%20BACKLOG%20SISTEMA%20DE%20TURNOS.xlsx).
+- **Backlog arquitectónico, deuda técnica y sprints:** [`docs/metodologias/`](docs/metodologias/).
+
 ## Proyecto Chronos — repositorios relacionados
 
 | Repositorio | Contenido |
