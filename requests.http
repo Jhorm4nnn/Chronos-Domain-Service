@@ -1,6 +1,15 @@
-### Variables (el token lo emite AuthCore con POST /auth/login; pégalo aquí, NO lo subas al repositorio)
+### Variables (el token lo emite AuthCore con POST /api/auth/login; pégalo aquí, NO lo subas al repositorio)
 @host = http://localhost:8082
+@authcore = http://localhost:8081
 @token = PEGA_AQUI_EL_TOKEN_DE_UN_ADMIN
+# Un lunes FUTURO: el profesional de ejemplo atiende los lunes de 08:00 a 12:00. Cámbialo si ya pasó.
+@lunes = 2026-11-23
+
+### Obtener el token en AuthCore (usuario con rol ADMIN)
+POST {{authcore}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "PON_AQUI_EL_USUARIO", "password": "PON_AQUI_LA_CLAVE" }
 
 ### HU-8: registrar cliente
 POST {{host}}/api/clientes
@@ -27,19 +36,19 @@ Authorization: Bearer {{token}}
 GET {{host}}/api/profesionales
 Authorization: Bearer {{token}}
 
-### HU-9: crear turno (duracionMinutos opcional, por defecto 30). Usa una fecha futura que sea lunes.
+### HU-9: crear turno (duracionMinutos opcional, por defecto 30) el lunes de la variable @lunes
 POST {{host}}/api/turnos
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
-{ "clienteId": 1, "profesionalId": 1, "fecha": "2026-11-02", "hora": "09:00", "duracionMinutos": 30 }
+{ "clienteId": 1, "profesionalId": 1, "fecha": "{{lunes}}", "hora": "09:00", "duracionMinutos": 30 }
 
 ### HU-10: repite con hora 09:15 -> 409 "se cruza con el turno ..."
 POST {{host}}/api/turnos
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
-{ "clienteId": 1, "profesionalId": 1, "fecha": "2026-11-02", "hora": "09:15", "duracionMinutos": 30 }
+{ "clienteId": 1, "profesionalId": 1, "fecha": "{{lunes}}", "hora": "09:15", "duracionMinutos": 30 }
 
 ### HU-11: reprogramar (solo cambia lo que envíes)
 PUT {{host}}/api/turnos/1/horario
