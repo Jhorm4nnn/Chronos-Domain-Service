@@ -16,7 +16,7 @@ El grupo no declaró tecnologías: se usó el estándar del curso (decisión doc
 | Dominio + aplicación + CLI | Compilado y probado |
 | Infraestructura (Spring, JPA, REST, seguridad) | Compilada y probada |
 | `./mvnw verify` desde un clon limpio | **102 pruebas, 0 fallos** (9 de noviembre de 2026) |
-| Imagen Docker y despliegue | Escritos (`Dockerfile`, [`despliegue/`](despliegue/)); falta desplegar en AWS |
+| Despliegue en AWS (EC2 + Docker Compose) | Funcionando; prueba de punta a punta **20/20** ([evidencia](docs/evidencia/despliegue-aws-2026-11-09.md)) |
 
 ### Qué falló en el primer `mvn verify` y cómo se corrigió
 
@@ -115,6 +115,9 @@ los dos con el **mismo** `JWT_SECRET_BASE64`. MySQL no publica ningún puerto: s
    ```
 6. **Probar:** `POST http://<ip-publica>:8081/api/auth/login` con el administrador de `.env` devuelve el token;
    con él, `requests.http` funciona cambiando `@host` y `@authcore` por la IP pública.
+   [`despliegue/prueba-punta-a-punta.sh`](despliegue/prueba-punta-a-punta.sh) recorre todo el flujo desde su equipo
+   (login, cliente, profesional, turno, cruce 409, reprogramar, cancelar, filtros, 403 y 401) y escribe la evidencia
+   sin tokens ni contraseñas: `./prueba-punta-a-punta.sh <ip-publica> evidencia.md`.
 
 La base de datos se crea la primera vez con [`despliegue/mysql-init/01-crear-bases.sh`](despliegue/mysql-init/01-crear-bases.sh).
 Si cambia las contraseñas de MySQL después, borre el volumen (`docker compose down -v`, que **borra los datos**) o
@@ -131,10 +134,9 @@ cámbielas también dentro de MySQL.
 
 ## Pendiente para el grupo
 
-1. Desplegar en AWS y guardar la evidencia de la prueba de punta a punta contra la IP pública.
-2. Probar el CLI con `SPRING_PROFILES_ACTIVE=cli`.
-3. Decidir con el profesor los puntos abiertos de las observaciones del Excel (numeración de HU).
-4. Reemplazar `ddl-auto: update` por migraciones versionadas (Flyway o Liquibase).
+1. Probar el CLI con `SPRING_PROFILES_ACTIVE=cli`.
+2. Decidir con el profesor los puntos abiertos de las observaciones del Excel (numeración de HU).
+3. Reemplazar `ddl-auto: update` por migraciones versionadas (Flyway o Liquibase).
 
 No incluye credenciales ni secretos: todo llega por variables de entorno.
 
