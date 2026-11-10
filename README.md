@@ -70,6 +70,21 @@ SPRING_PROFILES_ACTIVE=cli ./mvnw spring-boot:run
 Producción: perfil `prod` con `DB_URL`, `DB_USER`, `DB_PASSWORD` como variables de entorno.
 Pruebas manuales: `requests.http` (el token lo emite AuthCore; no lo guardes en el repositorio).
 
+## Ejecutar en local (NetBeans u otro IDE)
+
+1. Clone los dos repositorios, uno al lado del otro, y ábralos en NetBeans con *File > Open Project*
+   (NetBeans reconoce el `pom.xml` de este y el `build.gradle` de AuthCore).
+2. En la carpeta de cada proyecto cree un archivo `.env` (está en `.gitignore`; nunca se sube). La aplicación lo lee
+   al arrancar, así que no hace falta configurar variables de entorno en el IDE. Los dos deben tener el **mismo**
+   secreto (`openssl rand -base64 48`):
+   ```properties
+   JWT_SECRET_BASE64=<secreto Base64 de 48 bytes, el mismo de AuthCore>
+   ```
+3. *Run Project* en AuthCore (puerto 8081) y en este proyecto (puerto 8082). Sin perfil, este servicio usa H2 en
+   memoria. La primera vez NetBeans puede preguntar la clase principal: `com.sistematurnos.agenda.DomainServiceApplication`.
+4. Pruebe con [`requests.http`](requests.http) o con
+   `ADMIN_USERNAME=... ADMIN_PASSWORD=... ./despliegue/prueba-punta-a-punta.sh localhost evidencia.md`.
+
 ## Desplegar en AWS (EC2 + Docker Compose)
 
 [`despliegue/docker-compose.yml`](despliegue/docker-compose.yml) levanta todo Chronos en una sola instancia:
