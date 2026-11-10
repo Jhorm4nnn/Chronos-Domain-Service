@@ -36,7 +36,9 @@ class ArquitecturaHexagonalTest {
 
     @ArchTest
     static final ArchRule los_puertos_de_salida_son_interfaces =
-            classes().that().resideInAPackage("..application.port.out..").should().beInterfaces();
+            // Los records (como FiltroTurno) son los datos que viajan por el puerto, no implementaciones.
+            classes().that().resideInAPackage("..application.port.out..").and().areNotAssignableTo(Record.class)
+                    .should().beInterfaces();
 
     @ArchTest
     static final ArchRule los_controladores_no_conocen_la_persistencia =
