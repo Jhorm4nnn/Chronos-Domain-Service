@@ -1,17 +1,21 @@
 #!/bin/bash
 # Prueba de punta a punta contra el despliegue en AWS. Escribe la evidencia sin tokens ni contraseñas.
-# Uso: ./prueba-punta-a-punta.sh <ip-publica> <archivo-de-evidencia.md>
-# Lee el administrador inicial del .env del servidor por SSH (llave en $SSH_KEY), sin mostrarlo.
+# Uso: ./prueba-punta-a-punta.sh <ip-publica|localhost> <archivo-de-evidencia.md>
+# El administrador inicial sale de ADMIN_USERNAME y ADMIN_PASSWORD si están definidas (por ejemplo en local);
+# si no, se lee del .env del servidor por SSH (llave en $SSH_KEY). Nunca se muestra.
 set -u
 IP="$1"; SALIDA="$2"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/chronos-aws}"
-PY=$(command -v python3 || command -v py)
+# Primer Python que de verdad ejecute (en Windows, "python3" puede ser el acceso directo de la Microsoft Store).
+PY=""; for c in python3 python py; do "$c" -c "" 2>/dev/null && { PY="$c"; break; }; done
+[ -z "$PY" ] && { echo "Se necesita Python para leer las respuestas JSON"; exit 1; }
 AUTH="http://$IP:8081"; DOM="http://$IP:8082"
 LUNES=$(date -d "next monday" +%F)   # el profesional de prueba atiende los lunes
 SUF=$(date +%s | tail -c 6)
 
-ADMIN_USER=$(ssh -i "$SSH_KEY" -o BatchMode=yes ubuntu@$IP 'grep ^ADMIN_USERNAME= ~/chronos/Chronos-Domain-Service/despliegue/.env | cut -d= -f2-')
-ADMIN_PASS=$(ssh -i "$SSH_KEY" -o BatchMode=yes ubuntu@$IP 'grep ^ADMIN_PASSWORD= ~/chronos/Chronos-Domain-Service/despliegue/.env | cut -d= -f2-')
+ADMIN_USER=${ADMIN_USERNAME:-}; ADMIN_PASS=${ADMIN_PASSWORD:-}
+[ -z "$ADMIN_USER" ] && ADMIN_USER=$(ssh -i "$SSH_KEY" -o BatchMode=yes ubuntu@$IP 'grep ^ADMIN_USERNAME= ~/chronos/Chronos-Domain-Service/despliegue/.env | cut -d= -f2-')
+[ -z "$ADMIN_PASS" ] && ADMIN_PASS=$(ssh -i "$SSH_KEY" -o BatchMode=yes ubuntu@$IP 'grep ^ADMIN_PASSWORD= ~/chronos/Chronos-Domain-Service/despliegue/.env | cut -d= -f2-')
 
 ok=0; fallos=0
 oculta() { sed -E 's/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/<JWT oculto>/g'; }
