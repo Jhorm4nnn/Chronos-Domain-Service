@@ -81,7 +81,7 @@ Pruebas manuales: `requests.http` (el token lo emite AuthCore; no lo guardes en 
    JWT_SECRET_BASE64=<secreto Base64 de 48 bytes, el mismo de AuthCore>
    ```
 3. *Run Project* en AuthCore (puerto 8081) y en este proyecto (puerto 8082). Sin perfil, este servicio usa H2 en
-   memoria. La primera vez NetBeans puede preguntar la clase principal: `com.sistematurnos.agenda.DomainServiceApplication`.
+   memoria. La clase principal está en la propiedad `start-class` del `pom.xml`, que es la que usa NetBeans.
 4. Pruebe con [`requests.http`](requests.http) o con
    `ADMIN_USERNAME=... ADMIN_PASSWORD=... ./despliegue/prueba-punta-a-punta.sh localhost evidencia.md`.
 
