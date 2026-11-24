@@ -1,0 +1,681 @@
+{
+  "info": {
+    "name": "Chronos · Taller semana 12 · Contrato del servicio",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Grupo 5. Elija el ambiente «Chronos AWS», escriba admin_password en Current value y corra en orden: 0 Preparar, 1 Casos del taller."
+  },
+  "item": [
+    {
+      "name": "0 · Preparar",
+      "item": [
+        {
+          "name": "P1 · Login ADMIN (guarda {{token}})",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{auth_url}}/api/auth/login",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_user}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('token', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "P2 · Registrar un usuario USER",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{auth_url}}/api/auth/register",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"taller12-{{sufijo}}\",\n  \"password\": \"Prueba{{sufijo}}x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('sufijo', String(Date.now()).slice(-7));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "P3 · Login USER (guarda {{token_user}})",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{auth_url}}/api/auth/login",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"taller12-{{sufijo}}\",\n  \"password\": \"Prueba{{sufijo}}x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('token_user', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "P4 · HU-8 Registrar cliente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Marta Rojas {{sufijo}}\",\n  \"telefono\": \"300{{sufijo}}\",\n  \"correo\": \"marta.rojas@correo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('sufijo', String(Date.now()).slice(-7));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('cliente_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "P5 · HU-8 Registrar profesional",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/profesionales",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Dr. Iván Mora {{sufijo}}\",\n  \"disponibilidad\": [ { \"dia\": \"MONDAY\", \"desde\": \"08:00\", \"hasta\": \"12:00\" } ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('profesional_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 · Casos del taller (tabla 2)",
+      "item": [
+        {
+          "name": "1 · FELIZ · HU-9 Crear turno (201)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:00\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// próximo lunes: el profesional de prueba atiende los lunes de 08:00 a 12:00",
+                  "const d = new Date();",
+                  "d.setDate(d.getDate() + (((8 - d.getDay()) % 7) || 7));",
+                  "const p = n => String(n).padStart(2, '0');",
+                  "pm.environment.set('lunes', `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('turno_id', pm.response.json().id);",
+                  "pm.test('Queda AGENDADO', () => pm.expect(pm.response.json().estado).to.eql('AGENDADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 · FELIZ · HU-12 Consultar turnos (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?profesionalId={{profesional_id}}&desde={{lunes}}&hasta={{lunes}}",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 · NEGATIVO · HU-9 Crear turno con rol USER (403)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_user}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:00\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4 · NEGATIVO · HU-11 Borrar un turno con DELETE (contrato 405, hoy 500)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}",
+            "description": "La prueba FALLA a propósito mientras exista la discrepancia D1: el contrato dice 405 y el servicio responde 500.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 405', () => pm.response.to.have.status(405));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 · Otros casos del contrato",
+      "item": [
+        {
+          "name": "HU-9 sin token (401)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:00\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-10 Cruce de horario (409)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:15\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-10 Turno pegado, no se cruza (201)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:30\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-11 Reprogramar (200)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/horario",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora\": \"10:30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-11 Cancelar (200)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/cancelacion",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-11 Cancelar otra vez (409)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/cancelacion",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-12 desde posterior a hasta (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?desde=2030-01-02&hasta=2030-01-01",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-8 Cliente inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes/999999",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HU-8 Faltan campos (400)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
