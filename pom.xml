@@ -20,6 +20,8 @@
         <java.version>17</java.version>
         <jjwt.version>0.12.6</jjwt.version>
         <archunit.version>1.3.0</archunit.version>
+        <!-- Clase principal: la usan el plugin de Spring Boot y el botón Run de NetBeans (exec:exec con ${start-class}). -->
+        <start-class>com.sistematurnos.agenda.DomainServiceApplication</start-class>
     </properties>
 
     <dependencies>

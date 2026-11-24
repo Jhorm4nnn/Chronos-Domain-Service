@@ -192,6 +192,18 @@ class TurnosRestTest {
     }
 
     @Test
+    @DisplayName("La interfaz web se sirve sin token, pero la API sigue exigiendo ADMIN")
+    void interfazWebPublicaYApiProtegida() throws Exception {
+        mvc.perform(get("/")).andExpect(status().isOk());
+        mvc.perform(get("/index.html")).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.containsString("Chronos")));
+        mvc.perform(get("/app/app.js")).andExpect(status().isOk());
+        mvc.perform(get("/api/clientes")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/no-existe")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("HU-12: consultar por profesional, cliente y fechas; combinar filtros; cancelados solo si se piden")
     void consultas() throws Exception {
         long c1 = crearCliente(), c2 = crearCliente(), p1 = crearProfesional(), p2 = crearProfesional();

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos · Agenda de turnos</title>
+    <link rel="stylesheet" href="app/estilos.css">
+</head>
+<body>
+<header class="barra">
+    <div class="marca"><span class="logo">⏱</span> Chronos <small>Agenda de turnos</small></div>
+    <div id="sesion" class="sesion oculto">
+        <span id="usuarioActual"></span>
+        <button id="btnSalir" class="btn btn-claro">Cerrar sesión</button>
+    </div>
+</header>
+
+<main>
+    <!-- Inicio de sesión -->
+    <section id="pantallaLogin" class="login">
+        <form id="formLogin" class="tarjeta login-tarjeta">
+            <h1>Iniciar sesión</h1>
+            <p class="ayuda">Entre con su usuario de AuthCore. Solo el rol ADMIN puede operar la agenda.</p>
+            <label>Usuario <input id="loginUsuario" autocomplete="username" required></label>
+            <label>Contraseña <input id="loginClave" type="password" autocomplete="current-password" required></label>
+            <details>
+                <summary>Servidor de autenticación</summary>
+                <label>URL de AuthCore <input id="loginAuthUrl"></label>
+            </details>
+            <button class="btn btn-primario" type="submit">Entrar</button>
+            <p id="loginError" class="alerta alerta-error oculto"></p>
+        </form>
+    </section>
+
+    <!-- Aplicación -->
+    <section id="pantallaApp" class="oculto">
+        <nav class="pestanas">
+            <button class="pestana activa" data-vista="agenda">Agenda</button>
+            <button class="pestana" data-vista="nuevo">Nuevo turno</button>
+            <button class="pestana" data-vista="clientes">Clientes</button>
+            <button class="pestana" data-vista="profesionales">Profesionales</button>
+        </nav>
+        <p id="avisoRol" class="alerta alerta-aviso oculto">
+            Su usuario no tiene el rol ADMIN: la API responderá 403 a cualquier operación de la agenda.
+        </p>
+
+        <!-- Agenda -->
+        <div id="vista-agenda" class="vista">
+            <div class="tarjeta">
+                <div class="filtros">
+                    <label>Profesional <select id="fProfesional"></select></label>
+                    <label>Cliente <select id="fCliente"></select></label>
+                    <label>Desde <input id="fDesde" type="date"></label>
+                    <label>Hasta <input id="fHasta" type="date"></label>
+                    <label class="check"><input id="fCancelados" type="checkbox"> Incluir cancelados</label>
+                    <div class="acciones">
+                        <button id="btnBuscar" class="btn btn-primario">Buscar</button>
+                        <button id="btnLimpiar" class="btn">Limpiar</button>
+                    </div>
+                </div>
+                <div class="selector-vista">
+                    <button class="btn btn-chico activo" data-modo="lista">Lista</button>
+                    <button class="btn btn-chico" data-modo="semana">Semana</button>
+                    <span id="navSemana" class="nav-semana oculto">
+                        <button id="semAnterior" class="btn btn-chico">◀</button>
+                        <span id="tituloSemana"></span>
+                        <button id="semSiguiente" class="btn btn-chico">▶</button>
+                        <button id="semHoy" class="btn btn-chico">Esta semana</button>
+                    </span>
+                </div>
+            </div>
+            <div id="agendaLista" class="tarjeta"></div>
+            <div id="agendaSemana" class="tarjeta oculto"></div>
+        </div>
+
+        <!-- Nuevo turno -->
+        <div id="vista-nuevo" class="vista oculto">
+            <form id="formTurno" class="tarjeta formulario">
+                <h2>Agendar un turno</h2>
+                <label>Cliente <select id="tCliente" required></select></label>
+                <label>Profesional <select id="tProfesional" required></select></label>
+                <p id="tDisponibilidad" class="ayuda"></p>
+                <div class="fila">
+                    <label>Fecha <input id="tFecha" type="date" required></label>
+                    <label>Hora <input id="tHora" type="time" step="300" required></label>
+                    <label>Duración (min) <input id="tDuracion" type="number" min="5" max="480" step="5" value="30"></label>
+                </div>
+                <button class="btn btn-primario" type="submit">Agendar</button>
+            </form>
+        </div>
+
+        <!-- Clientes -->
+        <div id="vista-clientes" class="vista oculto">
+            <form id="formCliente" class="tarjeta formulario">
+                <h2>Registrar cliente</h2>
+                <div class="fila">
+                    <label>Nombre <input id="cNombre" required></label>
+                    <label>Teléfono <input id="cTelefono" required placeholder="300 123 4567"></label>
+                    <label>Correo (opcional) <input id="cCorreo" type="email"></label>
+                </div>
+                <button class="btn btn-primario" type="submit">Registrar</button>
+            </form>
+            <div id="tablaClientes" class="tarjeta"></div>
+        </div>
+
+        <!-- Profesionales -->
+        <div id="vista-profesionales" class="vista oculto">
+            <form id="formProfesional" class="tarjeta formulario">
+                <h2>Registrar profesional</h2>
+                <label>Nombre <input id="pNombre" required></label>
+                <p class="ayuda">Disponibilidad semanal: una o más franjas. Dos franjas del mismo día no pueden traslaparse.</p>
+                <div id="pFranjas"></div>
+                <button id="btnAgregarFranja" type="button" class="btn btn-chico">+ Agregar franja</button>
+                <button class="btn btn-primario" type="submit">Registrar</button>
+            </form>
+            <div id="tablaProfesionales" class="tarjeta"></div>
+        </div>
+    </section>
+</main>
+
+<!-- Ventana modal (reprogramar y confirmaciones) -->
+<div id="modal" class="modal oculto" role="dialog" aria-modal="true">
+    <div class="tarjeta modal-caja">
+        <h2 id="modalTitulo"></h2>
+        <div id="modalCuerpo"></div>
+        <div class="acciones">
+            <button id="modalCancelar" class="btn">Volver</button>
+            <button id="modalAceptar" class="btn btn-primario">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<div id="avisos" class="avisos"></div>
+<script src="app/app.js"></script>
+</body>
+</html>
