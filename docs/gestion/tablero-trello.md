@@ -29,14 +29,19 @@ sección 10 de los [entregables de las semanas 9 y 10](../metodologias/Entregabl
 Cada tarjeta lleva en el título el ID y la dimensión; en la descripción, el origen y la prioridad; y como lista de
 verificación, el criterio de terminado (ítems A) o los criterios de aceptación (historias).
 
-## Contenido del tablero al 10 de noviembre de 2026
+## Contenido del tablero al 24 de noviembre de 2026
 
 Esta copia sirve para revisar el tablero desde GitHub. El estado vigente es el de Trello.
 
 ### En revisión (PR)
-Hechos y esperando la revisión de Andrés en los pull requests
-[Chronos-AuthCore#1](https://github.com/Jhorm4nnn/Chronos-AuthCore/pull/1) y
-[Chronos-Domain-Service#1](https://github.com/Jhorm4nnn/Chronos-Domain-Service/pull/1):
+El código ya está en `main`, pero ninguna tarjeta cumple toda la definición de terminado: falta la revisión del otro
+integrante y el ADR de cada decisión.
+
+| PR | Fusionado | Tarjetas |
+|---|---|---|
+| [Chronos-AuthCore#1](https://github.com/Jhorm4nnn/Chronos-AuthCore/pull/1) y [Chronos-Domain-Service#1](https://github.com/Jhorm4nnn/Chronos-Domain-Service/pull/1) | 9 de noviembre, por Andrés, sin revisión registrada | A-01, A-03, A-04 (en parte), E-01, E-03 |
+| [Chronos-AuthCore#2](https://github.com/Jhorm4nnn/Chronos-AuthCore/pull/2) y [Chronos-Domain-Service#2](https://github.com/Jhorm4nnn/Chronos-Domain-Service/pull/2) | 24 de noviembre, por Jhorman, sin revisión | A-01 y E-03 (Gradle 8.14.6 y `start-class`), E-02 |
+
 - A-01 · Spike SP-1 y wrapper de Gradle en AuthCore · Dim 20
 - A-03 · Ejecutar todas las pruebas, corregir fallos y agregar pruebas unitarias de AuthService · Dim 40
 - E-01 · Despliegue en AWS con Docker Compose · prueba de punta a punta 20/20
@@ -92,4 +97,4 @@ Historias de usuario, por prioridad (P) y dimensión:
 | HU-13 · Errores sin detalles técnicos internos | Domain Service | 3 | 10 | Implementada, falta verificar |
 
 ### Terminado
-Sin tarjetas: nada cumple todavía toda la definición de terminado (falta la integración continua de A-02 y la revisión de los PR).
+Sin tarjetas: nada cumple todavía toda la definición de terminado (faltan la revisión del otro integrante y los ADR; la integración continua se exige desde que exista A-02).
