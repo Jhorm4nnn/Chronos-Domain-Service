@@ -1,0 +1,287 @@
+Chronos · Guía de contratos
+
+Folder 0 · Autenticación (AuthCore)
+Sub-folder Login ADMIN (guarda {{token}})
+
+  POST http://3.238.57.200:8081/api/auth/login [200 OK, 608 B, 464 ms]
+  Pass  Responde 200
+
+Sub-folder Registrar un usuario USER
+
+  POST http://3.238.57.200:8081/api/auth/register [201 Created, 439 B, 244 ms]
+  Pass  Responde 201
+
+Sub-folder Login USER (guarda {{token_user}})
+
+  POST http://3.238.57.200:8081/api/auth/login [200 OK, 606 B, 244 ms]
+  Pass  Responde 200
+
+Folder 1 · Clientes
+Sub-folder POST /api/clientes · 201
+
+  POST http://3.238.57.200:8082/api/clientes [201 Created, 550 B, 322 ms]
+  Pass  Responde 201
+  Pass  Es JSON
+  Pass  Trae id, nombre, telefono, correo
+  Pass  Location apunta al recurso creado
+
+Sub-folder POST /api/clientes · 400 faltan campos
+
+  POST http://3.238.57.200:8082/api/clientes [400 Bad Request, 511 B, 136 ms]
+  Pass  Responde 400
+  Pass  Trae status, error, mensaje, detalles
+  Pass  El mensaje explica el error
+
+Sub-folder POST /api/clientes · 409 teléfono repetido
+
+  POST http://3.238.57.200:8082/api/clientes [409 Conflict, 548 B, 354 ms]
+  Pass  Responde 409
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder POST /api/clientes · 401 sin token
+
+  POST http://3.238.57.200:8082/api/clientes [401 Unauthorized, 504 B, 130 ms]
+  Pass  Responde 401
+
+Sub-folder POST /api/clientes · 403 rol USER
+
+  POST http://3.238.57.200:8082/api/clientes [403 Forbidden, 500 B, 135 ms]
+  Pass  Responde 403
+
+Sub-folder GET /api/clientes · 200
+
+  GET http://3.238.57.200:8082/api/clientes [200 OK, 875 B, 200 ms]
+  Pass  Responde 200
+  Pass  Es JSON
+  Pass  Incluye el cliente creado
+
+Sub-folder GET /api/clientes · 401 sin token
+
+  GET http://3.238.57.200:8082/api/clientes [401 Unauthorized, 504 B, 156 ms]
+  Pass  Responde 401
+
+Sub-folder GET /api/clientes · 403 rol USER
+
+  GET http://3.238.57.200:8082/api/clientes [403 Forbidden, 500 B, 121 ms]
+  Pass  Responde 403
+
+Folder 2 · Profesionales
+Sub-folder POST /api/profesionales · 201
+
+  POST http://3.238.57.200:8082/api/profesionales [201 Created, 572 B, 149 ms]
+  Pass  Responde 201
+  Pass  Es JSON
+  Pass  Trae id, nombre, disponibilidad
+  Pass  Location apunta al recurso creado
+
+Sub-folder POST /api/profesionales · 400 sin disponibilidad
+
+  POST http://3.238.57.200:8082/api/profesionales [400 Bad Request, 508 B, 134 ms]
+  Pass  Responde 400
+  Pass  Trae status, error, mensaje, detalles
+  Pass  El mensaje explica el error
+
+Sub-folder POST /api/profesionales · 409 nombre repetido
+
+  POST http://3.238.57.200:8082/api/profesionales [409 Conflict, 557 B, 260 ms]
+  Pass  Responde 409
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder POST /api/profesionales · 403 rol USER
+
+  POST http://3.238.57.200:8082/api/profesionales [403 Forbidden, 500 B, 142 ms]
+  Pass  Responde 403
+
+Sub-folder GET /api/profesionales · 200
+
+  GET http://3.238.57.200:8082/api/profesionales [200 OK, 982 B, 139 ms]
+  Pass  Responde 200
+  Pass  Es JSON
+  Pass  Incluye el profesional creado
+
+Sub-folder GET /api/profesionales · 401 sin token
+
+  GET http://3.238.57.200:8082/api/profesionales [401 Unauthorized, 504 B, 142 ms]
+  Pass  Responde 401
+
+Folder 3 · Turnos: crear y consultar
+Sub-folder POST /api/turnos · 201
+
+  POST http://3.238.57.200:8082/api/turnos [201 Created, 669 B, 138 ms]
+  Pass  Responde 201
+  Pass  Es JSON
+  Pass  Trae id, estado, clienteId, cliente, profesionalId, profesional, fecha, horaInicio, horaFin, duracionMinutos
+  Pass  Location apunta al recurso creado
+  Pass  Queda AGENDADO
+
+Sub-folder POST /api/turnos · 409 se cruza
+
+  POST http://3.238.57.200:8082/api/turnos [409 Conflict, 607 B, 129 ms]
+  Pass  Responde 409
+  Pass  Trae status, error, mensaje, detalles
+  Pass  El mensaje explica el error
+  Pass  Indica el turno en conflicto
+
+Sub-folder POST /api/turnos · 201 pegado, no se cruza
+
+  POST http://3.238.57.200:8082/api/turnos [201 Created, 669 B, 145 ms]
+  Pass  Responde 201
+
+Sub-folder POST /api/turnos · 400 faltan campos
+
+  POST http://3.238.57.200:8082/api/turnos [400 Bad Request, 518 B, 128 ms]
+  Pass  Responde 400
+  Pass  Trae status, error, mensaje, detalles
+  Pass  El mensaje explica el error
+
+Sub-folder POST /api/turnos · 404 cliente inexistente
+
+  POST http://3.238.57.200:8082/api/turnos [404 Not Found, 525 B, 275 ms]
+  Pass  Responde 404
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder POST /api/turnos · 401 sin token
+
+  POST http://3.238.57.200:8082/api/turnos [401 Unauthorized, 504 B, 128 ms]
+  Pass  Responde 401
+
+Sub-folder POST /api/turnos · 403 rol USER
+
+  POST http://3.238.57.200:8082/api/turnos [403 Forbidden, 500 B, 147 ms]
+  Pass  Responde 403
+
+Sub-folder GET /api/turnos con los cinco filtros · 200
+
+  GET http://3.238.57.200:8082/api/turnos?profesionalId=5&clienteId=5&desde=2026-11-30&hasta=2026-11-30&incluirCancelados=false [200 OK, 858 B, 188 ms]
+  Pass  Responde 200
+  Pass  Es JSON
+  Pass  Trae los dos turnos, por hora
+
+Sub-folder GET /api/turnos con los filtros vacíos, como en la guía · 200
+
+  GET http://3.238.57.200:8082/api/turnos?profesionalId=&clienteId=&desde=&hasta=&incluirCancelados= [200 OK, 1.47 KB, 151 ms]
+  Pass  Responde 200
+  Pass  Es JSON
+
+Sub-folder GET /api/turnos · 400 desde posterior a hasta
+
+  GET http://3.238.57.200:8082/api/turnos?desde=2030-01-02&hasta=2030-01-01 [400 Bad Request, 516 B, 295 ms]
+  Pass  Responde 400
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder GET /api/turnos · 404 profesional inexistente
+
+  GET http://3.238.57.200:8082/api/turnos?profesionalId=999999 [404 Not Found, 529 B, 435 ms]
+  Pass  Responde 404
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder GET /api/turnos · 401 sin token
+
+  GET http://3.238.57.200:8082/api/turnos [401 Unauthorized, 504 B, 124 ms]
+  Pass  Responde 401
+
+Sub-folder GET /api/turnos/{id} · 200
+
+  GET http://3.238.57.200:8082/api/turnos/8 [200 OK, 639 B, 140 ms]
+  Pass  Responde 200
+  Pass  Es JSON
+  Pass  Trae id, estado, clienteId, cliente, profesionalId, profesional, fecha, horaInicio, horaFin, duracionMinutos
+
+Sub-folder GET /api/turnos/{id} · 404 inexistente
+
+  GET http://3.238.57.200:8082/api/turnos/999999 [404 Not Found, 523 B, 239 ms]
+  Pass  Responde 404
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder GET /api/turnos/{id} · 403 rol USER
+
+  GET http://3.238.57.200:8082/api/turnos/8 [403 Forbidden, 500 B, 332 ms]
+  Pass  Responde 403
+
+Folder 4 · Turnos: reprogramar y cancelar
+Sub-folder PUT /api/turnos/{id}/horario · 200
+
+  PUT http://3.238.57.200:8082/api/turnos/8/horario [200 OK, 639 B, 164 ms]
+  Pass  Responde 200
+  Pass  Es JSON
+  Pass  Trae id, estado, clienteId, cliente, profesionalId, profesional, fecha, horaInicio, horaFin, duracionMinutos
+  Pass  Cambia la hora y conserva lo demás
+
+Sub-folder PUT /api/turnos/{id}/horario · 400 sin datos
+
+  PUT http://3.238.57.200:8082/api/turnos/8/horario [400 Bad Request, 524 B, 143 ms]
+  Pass  Responde 400
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder PUT /api/turnos/{id}/horario · 409 se cruza
+
+  PUT http://3.238.57.200:8082/api/turnos/8/horario [409 Conflict, 607 B, 470 ms]
+  Pass  Responde 409
+  Pass  Trae status, error, mensaje, detalles
+  Pass  El mensaje explica el error
+
+Sub-folder PUT /api/turnos/{id}/horario · 404 inexistente
+
+  PUT http://3.238.57.200:8082/api/turnos/999999/horario [404 Not Found, 523 B, 406 ms]
+  Pass  Responde 404
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder PUT /api/turnos/{id}/horario · 403 rol USER
+
+  PUT http://3.238.57.200:8082/api/turnos/8/horario [403 Forbidden, 500 B, 168 ms]
+  Pass  Responde 403
+
+Sub-folder POST /api/turnos/{id}/cancelacion · 401 sin token
+
+  POST http://3.238.57.200:8082/api/turnos/8/cancelacion [401 Unauthorized, 504 B, 174 ms]
+  Pass  Responde 401
+
+Sub-folder POST /api/turnos/{id}/cancelacion · 200
+
+  POST http://3.238.57.200:8082/api/turnos/8/cancelacion [200 OK, 640 B, 165 ms]
+  Pass  Responde 200
+  Pass  Es JSON
+  Pass  Queda CANCELADO
+
+Sub-folder POST /api/turnos/{id}/cancelacion · 409 ya cancelado
+
+  POST http://3.238.57.200:8082/api/turnos/8/cancelacion [409 Conflict, 518 B, 130 ms]
+  Pass  Responde 409
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder POST /api/turnos/{id}/cancelacion · 404 inexistente
+
+  POST http://3.238.57.200:8082/api/turnos/999999/cancelacion [404 Not Found, 523 B, 140 ms]
+  Pass  Responde 404
+  Pass  Trae status, error, mensaje, detalles
+
+Sub-folder GET /api/turnos · incluirCancelados=true lo muestra
+
+  GET http://3.238.57.200:8082/api/turnos?profesionalId=5&incluirCancelados=true [200 OK, 859 B, 142 ms]
+  Pass  Responde 200
+  Pass  Incluye el cancelado
+
+Sub-folder GET /api/turnos · por defecto no muestra cancelados
+
+  GET http://3.238.57.200:8082/api/turnos?profesionalId=5 [200 OK, 641 B, 150 ms]
+  Pass  Responde 200
+  Pass  Solo el agendado
+
+-------------------------------------------------------------------------
+|                         |             executed |               failed |
+--------------------------+----------------------+-----------------------
+|              iterations |                    1 |                    0 |
+--------------------------+----------------------+-----------------------
+|                requests |                   43 |                    0 |
+--------------------------+----------------------+-----------------------
+|            test-scripts |                   43 |                    0 |
+--------------------------+----------------------+-----------------------
+|      prerequest-scripts |                    3 |                    0 |
+--------------------------+----------------------+-----------------------
+|              assertions |                   90 |                    0 |
+-------------------------------------------------------------------------
+| total run duration: 12.7 s                                            |
+-------------------------------------------------------------------------
+| total data received: 7.24 KB (approx)                                 |
+-------------------------------------------------------------------------
+| average response time: 202 ms [min: 121 ms, max: 470 ms, s.d.: 98 ms] |

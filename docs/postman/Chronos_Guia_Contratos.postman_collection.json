@@ -1,0 +1,1518 @@
+{
+  "info": {
+    "name": "Chronos · Guía de contratos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Grupo 5. Las nueve operaciones de la guía de contratos del profesor para el Sistema de Turnos, en el mismo orden. Elija un ambiente, escriba admin_password (no se guarda en el archivo) y corra la colección completa."
+  },
+  "item": [
+    {
+      "name": "0 · Autenticación (AuthCore)",
+      "item": [
+        {
+          "name": "Login ADMIN (guarda {{token}})",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{auth_url}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_user}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('token', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar un usuario USER",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{auth_url}}/api/auth/register",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"guia-{{sufijo}}\",\n  \"password\": \"Prueba{{sufijo}}x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('sufijo', String(Date.now()).slice(-7));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login USER (guarda {{token_user}})",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{auth_url}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"guia-{{sufijo}}\",\n  \"password\": \"Prueba{{sufijo}}x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('token_user', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 · Clientes",
+      "item": [
+        {
+          "name": "POST /api/clientes · 201",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Guía {{sufijo}}\",\n  \"telefono\": \"301{{sufijo}}\",\n  \"correo\": \"cliente@correo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Trae id, nombre, telefono, correo', () => pm.expect(pm.response.json()).to.include.keys('id', 'nombre', 'telefono', 'correo'));",
+                  "pm.test('Location apunta al recurso creado', () => pm.expect(pm.response.headers.get('Location')).to.eql('/api/clientes/' + pm.response.json().id));",
+                  "pm.environment.set('cliente_id', pm.response.json().id);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('sufijo', String(Date.now()).slice(-7));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/clientes · 400 faltan campos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));",
+                  "pm.test('El mensaje explica el error', () => pm.expect(pm.response.json().mensaje).to.include('nombre, teléfono'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/clientes · 409 teléfono repetido",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Guía {{sufijo}}\",\n  \"telefono\": \"301{{sufijo}}\",\n  \"correo\": \"cliente@correo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/clientes · 401 sin token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Guía {{sufijo}}\",\n  \"telefono\": \"301{{sufijo}}\",\n  \"correo\": \"cliente@correo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/clientes · 403 rol USER",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_user}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Guía {{sufijo}}\",\n  \"telefono\": \"301{{sufijo}}\",\n  \"correo\": \"cliente@correo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/clientes · 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Incluye el cliente creado', () => pm.expect(pm.response.json().map(c => c.id)).to.include(Number(pm.environment.get('cliente_id'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/clientes · 401 sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/clientes · 403 rol USER",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/clientes",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_user}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 · Profesionales",
+      "item": [
+        {
+          "name": "POST /api/profesionales · 201",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/profesionales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Dra. Guía {{sufijo}}\",\n  \"disponibilidad\": [\n    { \"dia\": \"MONDAY\", \"desde\": \"08:00\", \"hasta\": \"12:00\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Trae id, nombre, disponibilidad', () => pm.expect(pm.response.json()).to.include.keys('id', 'nombre', 'disponibilidad'));",
+                  "pm.test('Location apunta al recurso creado', () => pm.expect(pm.response.headers.get('Location')).to.eql('/api/profesionales/' + pm.response.json().id));",
+                  "pm.environment.set('profesional_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/profesionales · 400 sin disponibilidad",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/profesionales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sin horario {{sufijo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));",
+                  "pm.test('El mensaje explica el error', () => pm.expect(pm.response.json().mensaje).to.include('disponibilidad'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/profesionales · 409 nombre repetido",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/profesionales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Dra. Guía {{sufijo}}\",\n  \"disponibilidad\": [\n    { \"dia\": \"MONDAY\", \"desde\": \"08:00\", \"hasta\": \"12:00\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/profesionales · 403 rol USER",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/profesionales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_user}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Dra. Guía {{sufijo}}\",\n  \"disponibilidad\": [\n    { \"dia\": \"MONDAY\", \"desde\": \"08:00\", \"hasta\": \"12:00\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/profesionales · 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/profesionales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Incluye el profesional creado', () => pm.expect(pm.response.json().map(c => c.id)).to.include(Number(pm.environment.get('profesional_id'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/profesionales · 401 sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/profesionales",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 · Turnos: crear y consultar",
+      "item": [
+        {
+          "name": "POST /api/turnos · 201",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:00\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Trae id, estado, clienteId, cliente, profesionalId, profesional, fecha, horaInicio, horaFin, duracionMinutos', () => pm.expect(pm.response.json()).to.include.keys('id', 'estado', 'clienteId', 'cliente', 'profesionalId', 'profesional', 'fecha', 'horaInicio', 'horaFin', 'duracionMinutos'));",
+                  "pm.test('Location apunta al recurso creado', () => pm.expect(pm.response.headers.get('Location')).to.eql('/api/turnos/' + pm.response.json().id));",
+                  "pm.test('Queda AGENDADO', () => pm.expect(pm.response.json().estado).to.eql('AGENDADO'));",
+                  "pm.environment.set('turno_id', pm.response.json().id);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// próximo lunes: el profesional de prueba atiende los lunes de 08:00 a 12:00",
+                  "const d = new Date();",
+                  "d.setDate(d.getDate() + (((8 - d.getDay()) % 7) || 7));",
+                  "const p = n => String(n).padStart(2, '0');",
+                  "pm.environment.set('lunes', `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos · 409 se cruza",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:15\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));",
+                  "pm.test('El mensaje explica el error', () => pm.expect(pm.response.json().mensaje).to.include('se cruza'));",
+                  "pm.test('Indica el turno en conflicto', () => pm.expect(pm.response.json().detalles[0]).to.include(String(pm.environment.get('turno_id'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos · 201 pegado, no se cruza",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"09:30\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('turno2_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos · 400 faltan campos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));",
+                  "pm.test('El mensaje explica el error', () => pm.expect(pm.response.json().mensaje).to.include('profesional, fecha, hora'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos · 404 cliente inexistente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": 999999,\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"11:00\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos · 401 sin token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"11:00\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos · 403 rol USER",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_user}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{cliente_id}},\n  \"profesionalId\": {{profesional_id}},\n  \"fecha\": \"{{lunes}}\",\n  \"hora\": \"11:00\",\n  \"duracionMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos con los cinco filtros · 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?profesionalId={{profesional_id}}&clienteId={{cliente_id}}&desde={{lunes}}&hasta={{lunes}}&incluirCancelados=false",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Trae los dos turnos, por hora', () => pm.expect(pm.response.json().map(t => t.horaInicio)).to.eql(['09:00:00', '09:30:00']));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos con los filtros vacíos, como en la guía · 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?profesionalId=&clienteId=&desde=&hasta=&incluirCancelados=",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos · 400 desde posterior a hasta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?desde=2030-01-02&hasta=2030-01-01",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos · 404 profesional inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?profesionalId=999999",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos · 401 sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos/{id} · 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Trae id, estado, clienteId, cliente, profesionalId, profesional, fecha, horaInicio, horaFin, duracionMinutos', () => pm.expect(pm.response.json()).to.include.keys('id', 'estado', 'clienteId', 'cliente', 'profesionalId', 'profesional', 'fecha', 'horaInicio', 'horaFin', 'duracionMinutos'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos/{id} · 404 inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/999999",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos/{id} · 403 rol USER",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_user}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4 · Turnos: reprogramar y cancelar",
+      "item": [
+        {
+          "name": "PUT /api/turnos/{id}/horario · 200",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/horario",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora\": \"10:30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Trae id, estado, clienteId, cliente, profesionalId, profesional, fecha, horaInicio, horaFin, duracionMinutos', () => pm.expect(pm.response.json()).to.include.keys('id', 'estado', 'clienteId', 'cliente', 'profesionalId', 'profesional', 'fecha', 'horaInicio', 'horaFin', 'duracionMinutos'));",
+                  "pm.test('Cambia la hora y conserva lo demás', () => { const t = pm.response.json(); pm.expect(t.horaInicio).to.eql('10:30:00'); pm.expect(t.duracionMinutos).to.eql(30); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/turnos/{id}/horario · 400 sin datos",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/horario",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/turnos/{id}/horario · 409 se cruza",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/horario",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora\": \"09:45\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));",
+                  "pm.test('El mensaje explica el error', () => pm.expect(pm.response.json().mensaje).to.include('se cruza'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/turnos/{id}/horario · 404 inexistente",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/999999/horario",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora\": \"10:30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/turnos/{id}/horario · 403 rol USER",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/horario",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_user}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora\": \"11:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos/{id}/cancelacion · 401 sin token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/cancelacion",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos/{id}/cancelacion · 200",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/cancelacion",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Queda CANCELADO', () => pm.expect(pm.response.json().estado).to.eql('CANCELADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos/{id}/cancelacion · 409 ya cancelado",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/{{turno_id}}/cancelacion",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/turnos/{id}/cancelacion · 404 inexistente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos/999999/cancelacion",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Trae status, error, mensaje, detalles', () => pm.expect(pm.response.json()).to.include.keys('status', 'error', 'mensaje', 'detalles'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos · incluirCancelados=true lo muestra",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?profesionalId={{profesional_id}}&incluirCancelados=true",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Incluye el cancelado', () => pm.expect(pm.response.json().filter(t => t.estado === 'CANCELADO').map(t => t.id)).to.include(Number(pm.environment.get('turno_id'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/turnos · por defecto no muestra cancelados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{domain_url}}/api/turnos?profesionalId={{profesional_id}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Solo el agendado', () => pm.expect(pm.response.json().map(t => t.id)).to.eql([Number(pm.environment.get('turno2_id'))]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
